@@ -1,0 +1,40 @@
+currentBuild.displayName='Pipeline_suri'+BUILD_NUMBER
+pipeline {
+    agent { label 'slave_surendra'}
+environment {
+  PATH = "/opt/maven/bin:$PATH"
+}
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('checkout') {
+           steps {
+               checkout([$class: 'GitSCM',
+               branches: [[name: '*/dev']], 
+               extensions: [], 
+               userRemoteConfigs: [
+            [credentialsId: 'Github', url: 'https://github.com/surendra443/hello-world-war.git']]])
+           }
+    }
+       stage('build'){
+           steps {
+           sh 'mvn package'
+       }
+}
+       stage( 'deploy'){
+           steps {
+               deploy adapters: 
+               [
+                   tomcat8(credentialsId: 'surendra', 
+                   path: '', 
+                   url: 'http://13.233.97.151:8080/')], 
+                   contextPath: 'intial', 
+                   war: '**/target/*.war'
+       }
+}
+}
+}
